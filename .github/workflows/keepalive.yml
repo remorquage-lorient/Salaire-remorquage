@@ -1,0 +1,18 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    - cron: '0 8 */5 * *'  # Toutes les 5 jours à 8h UTC
+  workflow_dispatch:         # Déclenchement manuel possible
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            "https://ypbkkudsztqsnqgbqjyg.supabase.co/rest/v1/config?select=key&limit=1" \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwYmtrdWRzenRxc25xZ2JxanlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDU2NDgsImV4cCI6MjA5MTgyMTY0OH0.tyTFTfaQp-44ubjcrQNqIPg7jSVPBBWZqdsV2cyeR9A" \
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwYmtrdWRzenRxc25xZ2JxanlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDU2NDgsImV4cCI6MjA5MTgyMTY0OH0.tyTFTfaQp-44ubjcrQNqIPg7jSVPBBWZqdsV2cyeR9A"
+          echo " — Ping Supabase OK"
