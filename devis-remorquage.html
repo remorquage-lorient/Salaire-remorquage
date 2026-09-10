@@ -452,6 +452,7 @@ let FORFAIT_CARBURANT_MAJ = null; // date ISO (YYYY-MM-DD) de la dernière mise 
 
 async function init(){
   document.getElementById('info-date').value = new Date().toISOString().slice(0,10);
+  new Image().src = 'signature-josse.png';
   await loadConfig();
   document.getElementById('b1-carburant').value = FORFAIT_CARBURANT_DEFAUT;
   document.getElementById('h-carburant').value = FORFAIT_CARBURANT_DEFAUT;
@@ -759,7 +760,7 @@ const CGV_HTML = `
     <p>Les présentes conditions générales ainsi que les actes qui en seront les conséquences sont soumises au droit français, et tout litige découlant de leur exécution ou de leur interprétation sera de la compétence exclusive des Tribunaux compétents du ressort de la SAS PCLBS, même en cas de pluralité de défenseurs, de défendeurs et d'appels en garantie. Condition formelle et absolue sans laquelle nos ventes n'auraient pas lieu et nos prestations ne seraient pas exécutées.</p>
   </div>`;
 
-function generatePDF(){
+async function generatePDF(){
   if (state.lines.length===0){ alert('Génère au moins une ligne de calcul avant de créer le PDF.'); return; }
   const date = document.getElementById('info-date').value;
   const capitaine = document.getElementById('info-capitaine').value || 'Antoine JOSSE';
@@ -803,7 +804,20 @@ function generatePDF(){
     </div>
     ${CGV_HTML}`;
   document.getElementById('print-root').innerHTML = html;
-  setTimeout(()=>window.print(), 50);
+  await waitForImages(document.getElementById('print-root'));
+  window.print();
+}
+
+function waitForImages(container){
+  const imgs = [...container.querySelectorAll('img')];
+  return Promise.all(imgs.map(img => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(resolve => {
+      img.addEventListener('load', resolve, {once:true});
+      img.addEventListener('error', resolve, {once:true});
+      setTimeout(resolve, 3000); // filet de sécurité si l'image ne se charge jamais
+    });
+  }));
 }
 
 // ── Supabase : save / load ───────────────────────────────
