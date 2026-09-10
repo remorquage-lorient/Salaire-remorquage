@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#185FA5">
+<meta name="apple-mobile-web-app-title" content="Devis Remorquage">
+<link rel="apple-touch-icon" href="logo-remorquage.png">
+<title>Devis Remorquage</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f4f8;min-height:100vh;color:#1a1a2e}
+.screen{display:none;min-height:100vh;padding:16px;max-width:640px;margin:0 auto}
+.screen.active{display:block}
+/* PIN */
+.pin-header{text-align:center;padding:40px 0 30px}
+.pin-logo{width:80px;height:80px;border-radius:20px;object-fit:contain;background:#fff;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);margin-bottom:16px}
+.pin-title{font-size:22px;font-weight:700;color:#185FA5}
+.pin-subtitle{font-size:14px;color:#666;margin-top:6px}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin:24px 0}
+.pin-dot{width:16px;height:16px;border-radius:50%;background:#ddd;transition:background 0.2s}
+.pin-dot.filled{background:#185FA5}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:280px;margin:0 auto}
+.pin-btn{background:#fff;border:none;border-radius:16px;padding:18px;font-size:22px;font-weight:600;color:#1a1a2e;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:transform 0.1s}
+.pin-btn:active{transform:scale(0.93)}
+.pin-btn.del{color:#E74C3C}
+.pin-error{text-align:center;color:#E74C3C;font-size:13px;margin-top:12px;height:20px}
+/* Header */
+.app-header{background:linear-gradient(135deg,#185FA5,#1D9E75);border-radius:16px;padding:14px 16px;margin-bottom:14px;color:#fff;display:flex;align-items:center;gap:12px}
+.app-logo{width:40px;height:40px;border-radius:10px;background:#fff;padding:4px;object-fit:contain}
+.app-title{font-size:16px;font-weight:700}
+.app-sub{font-size:12px;opacity:0.8}
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab-btn{flex:1;padding:12px 6px;border:none;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.tab-btn.active{background:#185FA5;color:#fff;box-shadow:0 4px 12px rgba(24,95,165,0.3)}
+.tab-btn:not(.active){background:#fff;color:#666}
+/* Cards */
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.card-title{font-size:12px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+/* Fields */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:#444;margin-bottom:5px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:16px;outline:none;background:#fff;transition:border-color 0.2s;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#185FA5}
+.field textarea{resize:vertical;min-height:60px}
+.field .hint{font-size:11.5px;color:#888;margin-top:4px;line-height:1.4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:14px;color:#1a1a2e}
+.toggle-label small{display:block;font-size:11px;color:#888;font-weight:400}
+.toggle{position:relative;width:50px;height:28px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:28px;transition:0.3s}
+.toggle-slider:before{position:absolute;content:"";height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+input:checked+.toggle-slider{background:#185FA5}
+input:checked+.toggle-slider:before{transform:translateX(22px)}
+/* Radio */
+.radio-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.radio-btn{flex:1;min-width:80px;padding:10px 6px;border:1.5px solid #e0e0e0;border-radius:10px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;background:#fff;color:#444}
+.radio-btn.selected{border-color:#185FA5;background:#e8f4ff;color:#185FA5;font-weight:700}
+/* Buttons */
+.btn{width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:transform 0.1s}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:linear-gradient(135deg,#1D9E75,#185FA5);color:#fff;box-shadow:0 4px 16px rgba(29,158,117,0.3)}
+.btn-secondary{background:#e8f4ff;color:#185FA5}
+.btn-ghost{background:#f0f0f0;color:#555}
+.btn-danger{background:#fdecea;color:#E74C3C}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{margin-top:0}
+.success-msg{text-align:center;padding:12px;border-radius:12px;font-weight:600;font-size:14px;margin-top:8px;display:none}
+/* Lines table */
+.lines-table{width:100%;border-collapse:collapse}
+.lines-table th{text-align:left;font-size:11px;color:#888;text-transform:uppercase;padding:0 4px 6px;font-weight:700}
+.lines-table td{padding:5px 4px;vertical-align:middle}
+.lines-table input[type=text]{width:100%;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px}
+.lines-table input[type=number]{width:100%;padding:8px 6px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right}
+.line-del{background:none;border:none;color:#E74C3C;font-size:18px;cursor:pointer;padding:4px 8px}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:14px 4px 4px;border-top:2px solid #185FA5;margin-top:8px}
+.total-label{font-size:14px;font-weight:700;color:#1a1a2e}
+.total-amount{font-size:22px;font-weight:800;color:#185FA5}
+/* Badge / statut */
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-left:6px}
+.badge-brouillon{background:#eee;color:#666}
+.badge-envoye{background:#e8f4ff;color:#185FA5}
+.badge-accepte{background:#e3f7ec;color:#1D9E75}
+.badge-refuse{background:#fdecea;color:#E74C3C}
+/* History */
+.devis-item{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+.devis-item.selected{border-color:#185FA5;background:#e8f4ff}
+.devis-item-top{display:flex;justify-content:space-between;align-items:center}
+.devis-item-title{font-size:13px;font-weight:700;color:#1a1a2e}
+.devis-item-sub{font-size:12px;color:#666;margin-top:2px}
+.devis-item-amount{font-size:14px;font-weight:700;color:#185FA5}
+.info-box{background:#e8f4ff;border-radius:10px;padding:10px 14px;font-size:13px;color:#185FA5;margin-bottom:12px}
+@media (min-width:600px){
+  .row3-desktop{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+}
+/* PRINT AREA */
+#print-root{display:none}
+@media print{
+  html,body{height:auto !important;min-height:0 !important}
+  #pin-screen,#main-screen{display:none !important}
+  #print-root{display:block !important;margin:0;padding:0}
+  @page{margin:16mm 14mm}
+}
+.pdoc{font-family:Cambria,Georgia,"Times New Roman",serif;color:#111;font-size:13.5px;line-height:1.5;max-width:780px;margin:0 auto;padding:20px;page-break-after:always;break-after:page}
+.pdoc-head{font-family:Calibri,-apple-system,"Segoe UI",sans-serif;font-size:12px;line-height:1.5}
+.pdoc-logo{width:180px;display:block;margin-bottom:10px}
+.pdoc-date{text-align:right;margin:18px 0}
+.pdoc-row{display:flex;justify-content:space-between;align-items:flex-start;margin:14px 0}
+.pdoc-cap{font-weight:700;font-style:italic}
+.pdoc-client{text-align:right}
+.pdoc-client b{font-weight:700}
+.pdoc-obj-title{font-weight:700;text-decoration:underline;margin:18px 0 8px}
+.pdoc-conditions-title{text-decoration:underline;margin:10px 0 4px}
+.pdoc ul{margin:0 0 10px 20px}
+.pdoc p{margin:8px 0}
+.pdoc .tarif-line{font-weight:700;margin:12px 0}
+.pdoc .coeff{font-style:italic}
+.pdoc-sign{margin-top:40px}
+.pdoc-sign-img{width:150px;display:block;margin:6px 0}
+.pdoc-cgv{font-family:Calibri,-apple-system,"Segoe UI",sans-serif;font-size:11px;line-height:1.45;max-width:780px;margin:0 auto;padding:20px}
+.pdoc-cgv h2{font-size:16px;text-align:center;margin-bottom:14px}
+.pdoc-cgv .cgv-intro{text-align:center;margin-bottom:16px}
+.pdoc-cgv h3{font-size:11.5px;margin:12px 0 4px}
+.pdoc-cgv p{margin:6px 0}
+.pdoc-cgv ul{margin:2px 0 6px 22px}
+</style>
+</head>
+<body>
+
+<!-- PIN -->
+<div id="pin-screen" class="screen active">
+  <div class="pin-header">
+    <img src="logo-remorquage.png" class="pin-logo" alt="Port de Commerce">
+    <div class="pin-title">Devis Remorquage</div>
+    <div class="pin-subtitle">SAS Port de Commerce de Lorient</div>
+  </div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn"></button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<!-- Main -->
+<div id="main-screen" class="screen">
+  <div class="app-header">
+    <img src="logo-remorquage.png" class="app-logo" alt="">
+    <div>
+      <div class="app-title">Devis Remorquage</div>
+      <div class="app-sub" id="header-sub">Chargement...</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-b1" onclick="switchMode('b1')">Grille B1<br><small>Port de commerce</small></button>
+    <button class="tab-btn" id="tab-horaire" onclick="switchMode('horaire')">Tarif horaire<br><small>Rade</small></button>
+    <button class="tab-btn" id="tab-hautemer" onclick="switchMode('hautemer')">Haute mer<br><small>Extérieur</small></button>
+  </div>
+
+  <!-- ===== MODE B1 ===== -->
+  <div id="panel-b1" class="mode-panel">
+    <div class="card">
+      <div class="card-title">Mouvement — Grille B1</div>
+      <div class="field">
+        <label>Longueur (m) — navire, ou convoi complet si convoi</label>
+        <input type="number" step="0.01" id="b1-longueur" placeholder="ex: 93.20" oninput="onB1Toggle()">
+        <div class="hint" id="b1-longueur-hint">Longueur du navire seul.</div>
+      </div>
+      <div class="field">
+        <label>Nombre de remorqueurs</label>
+        <div class="radio-group" id="b1-nb-remorqueurs">
+          <div class="radio-btn selected" data-val="1" onclick="selectRadio('b1-nb-remorqueurs',this,'1')">1</div>
+          <div class="radio-btn" data-val="2" onclick="selectRadio('b1-nb-remorqueurs',this,'2')">2</div>
+          <div class="radio-btn" data-val="3" onclick="selectRadio('b1-nb-remorqueurs',this,'3')">3</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Sens du mouvement</label>
+        <div class="radio-group" id="b1-sens">
+          <div class="radio-btn" data-val="entree" onclick="selectRadio('b1-sens',this,'entree')">Entrée seule</div>
+          <div class="radio-btn" data-val="sortie" onclick="selectRadio('b1-sens',this,'sortie')">Sortie seule</div>
+          <div class="radio-btn selected" data-val="entree_sortie" onclick="selectRadio('b1-sens',this,'entree_sortie')">Entrée + Sortie</div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Convoi<small>coeff. ×1,5 sur chaque remorqueur</small></span>
+        <label class="toggle"><input type="checkbox" id="b1-convoi" onchange="onB1Toggle()"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Navire sans machine<small>coeff. ×2 sur chaque remorqueur</small></span>
+        <label class="toggle"><input type="checkbox" id="b1-sans-machine"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="row2" style="margin-top:12px">
+        <div class="field">
+          <label>Durée manœuvre entrée (h)</label>
+          <input type="number" step="0.25" id="b1-duree-entree" value="3">
+        </div>
+        <div class="field">
+          <label>Durée manœuvre sortie (h)</label>
+          <input type="number" step="0.25" id="b1-duree-sortie" value="3">
+        </div>
+      </div>
+      <div class="hint" style="margin:-4px 0 12px">Au-delà de 3h : +1h de tarif horaire (majorée convoi/sans machine uniquement) + 1 forfait carburant supplémentaire, par mouvement concerné.</div>
+      <div class="field">
+        <label>Taxe astreinte (entrée uniquement, 1er remorqueur)</label>
+        <select id="b1-astreinte">
+          <option value="0">Aucune</option>
+          <option value="252">≤ 8 500 m³ — 252 €</option>
+          <option value="401">8 500 à 26 000 m³ — 401 €</option>
+          <option value="666">&gt; 26 000 m³ — 666 €</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Forfait carburant (par remorqueur, par tranche de 3h)</label>
+        <input type="number" step="1" id="b1-carburant">
+      </div>
+      <div class="info-box">Rappel (non calculé, à titre informatif — voir conditions de commande A.2 à A.4) : +10% si le 1er remorqueur est commandé entre 17h et 8h30 ; +15% si le 2ème remorqueur est commandé avec moins de 12h de préavis ; +50% si la commande intervient après franchissement des passes ou largage des amarres. Ce rappel est automatiquement ajouté au bas du PDF.</div>
+      <button class="btn btn-secondary" onclick="generateB1Lines()">🧮 Générer les lignes</button>
+    </div>
+  </div>
+
+  <!-- ===== MODE HORAIRE ===== -->
+  <div id="panel-horaire" class="mode-panel" style="display:none">
+    <div class="card">
+      <div class="card-title">Tarif horaire — Rade de Lorient</div>
+      <div class="field">
+        <label>Durée de la prestation (heures)</label>
+        <input type="number" step="0.25" id="h-heures" placeholder="ex: 2">
+      </div>
+      <div class="field">
+        <label>Nombre de remorqueurs</label>
+        <div class="radio-group" id="h-nb-remorqueurs">
+          <div class="radio-btn selected" data-val="1" onclick="selectRadio('h-nb-remorqueurs',this,'1')">1</div>
+          <div class="radio-btn" data-val="2" onclick="selectRadio('h-nb-remorqueurs',this,'2')">2</div>
+          <div class="radio-btn" data-val="3" onclick="selectRadio('h-nb-remorqueurs',this,'3')">3</div>
+        </div>
+        <div class="hint">Chaque remorqueur supplémentaire est facturé au même tarif horaire × coefficients (pas de forfait B1 en mode tarif horaire).</div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Navire sans machine<small>coeff. ×2</small></span>
+        <label class="toggle"><input type="checkbox" id="h-sans-machine"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Convoi<small>coeff. ×1,5</small></span>
+        <label class="toggle"><input type="checkbox" id="h-convoi"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Supplément nuit (18h–8h)<small>coeff. ×1,25</small></span>
+        <label class="toggle"><input type="checkbox" id="h-nuit"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Supplément week-end<small>ven 18h → lun 8h, coeff. ×1,50</small></span>
+        <label class="toggle"><input type="checkbox" id="h-weekend"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Supplément férié<small>veille 18h → lendemain 8h, coeff. ×1,50</small></span>
+        <label class="toggle"><input type="checkbox" id="h-ferie"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>Forfait carburant (par tranche de 3h)</label>
+        <input type="number" step="1" id="h-carburant">
+      </div>
+      <button class="btn btn-secondary" onclick="generateHoraireLines()">🧮 Générer les lignes</button>
+    </div>
+  </div>
+
+  <!-- ===== MODE HAUTE MER ===== -->
+  <div id="panel-hautemer" class="mode-panel" style="display:none">
+    <div class="card">
+      <div class="card-title">Haute mer / mouvements extérieurs</div>
+      <div class="info-box">Tarif calculé manuellement au cas par cas. Cet onglet sert surtout à générer la mise en page du devis — ajoute directement les lignes de prix ci-dessous.</div>
+      <div class="row2">
+        <div class="field">
+          <label>Base horaire indicative</label>
+          <input type="text" value="723 € / heure" disabled style="background:#f5f5f5;color:#888">
+        </div>
+        <div class="field">
+          <label>Heure d'attente indicative</label>
+          <input type="text" value="360 € / heure" disabled style="background:#f5f5f5;color:#888">
+        </div>
+      </div>
+      <div class="field">
+        <label>Conditions (une par ligne)</label>
+        <textarea id="hm-conditions" placeholder="Remorqueur disponible&#10;Météo permettant" style="min-height:150px">Remorqueur disponible
+Météo permettant
+Hors frais de remorqueurs au départ de Lorient
+Hors frais d'éventuel remorqueur de queue au départ et à l'arrivée
+Conditions Générales de remorquage Haute mer
+Hors frais portuaires
+Hors frais de pilotage
+Toilette de mer à la charge du remorqué</textarea>
+      </div>
+      <button class="btn btn-secondary" onclick="generateHauteMerLines()">➕ Préparer une ligne de prix</button>
+    </div>
+  </div>
+
+  <!-- ===== BREAKDOWN (commun) ===== -->
+  <div class="card">
+    <div class="card-title">Détail du calcul (modifiable)</div>
+    <table class="lines-table">
+      <thead><tr><th style="width:60%">Ligne</th><th style="width:30%">Montant €</th><th></th></tr></thead>
+      <tbody id="lines-body"></tbody>
+    </table>
+    <button class="btn btn-ghost" onclick="addLine('',0)">+ Ajouter une ligne</button>
+    <div class="total-row">
+      <span class="total-label">TOTAL HT</span>
+      <span class="total-amount" id="total-amount">0,00 €</span>
+    </div>
+  </div>
+
+  <!-- ===== INFOS DEVIS ===== -->
+  <div class="card">
+    <div class="card-title">Informations du devis</div>
+    <div class="row2">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="info-date">
+      </div>
+      <div class="field">
+        <label>Capitaine</label>
+        <input type="text" id="info-capitaine" value="Antoine JOSSE">
+      </div>
+    </div>
+    <div class="field">
+      <label>Destinataire (agence / courtier)</label>
+      <input type="text" id="info-destinataire" placeholder="ex: Agence Maritime Lorientaise">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Client (société)</label>
+        <input type="text" id="info-client-societe" placeholder="ex: BOLUDA BREST">
+      </div>
+      <div class="field">
+        <label>Contact client</label>
+        <input type="text" id="info-client-contact" placeholder="ex: Éric LESAUX">
+      </div>
+    </div>
+    <div class="field">
+      <label>Navire</label>
+      <input type="text" id="info-navire" placeholder="ex: SEASPEAK OAK">
+    </div>
+    <div class="field">
+      <label>Objet de la prestation</label>
+      <textarea id="info-objet" placeholder="Description libre du mouvement (généré automatiquement, modifiable)"></textarea>
+    </div>
+    <div class="field">
+      <label>Statut</label>
+      <select id="info-statut">
+        <option value="brouillon">Brouillon</option>
+        <option value="envoye">Envoyé</option>
+        <option value="accepte">Accepté</option>
+        <option value="refuse">Refusé</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="saveDevis()">💾 Enregistrer</button>
+    <button class="btn btn-primary" onclick="generatePDF()">📄 Générer le PDF</button>
+  </div>
+  <div class="success-msg" id="save-success"></div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Historique</div>
+    <div id="devis-list"></div>
+  </div>
+
+  <button class="btn btn-ghost" onclick="logout()" style="margin-top:6px">Verrouiller</button>
+</div>
+
+<!-- ===== PRINT ROOT ===== -->
+<div id="print-root"></div>
+
+<script>
+const SB = 'https://ypbkkudsztqsnqgbqjyg.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwYmtrdWRzenRxc25xZ2JxanlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDU2NDgsImV4cCI6MjA5MTgyMTY0OH0.tyTFTfaQp-44ubjcrQNqIPg7jSVPBBWZqdsV2cyeR9A';
+const PIN = '0321';
+const H = {'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
+const fmt = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n||0);
+const fmtDate = d => { if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; };
+
+// ── Référentiel tarifaire (Tarifs Outillage 2026 S1 — SAS Port Commerce Lorient) ──
+const B1_TABLE = [
+  {max:94.99, prix:1113}, {max:104.99, prix:1472}, {max:114.99, prix:1806},
+  {max:124.99, prix:2141}, {max:134.99, prix:2477}, {max:144.99, prix:2809},
+  {max:154.99, prix:3144}, {max:164.99, prix:3480}, {max:174.99, prix:3816},
+  {max:184.99, prix:4150}, {max:194.99, prix:4483}, {max:204.99, prix:4820},
+  {max:214.99, prix:5153}, {max:224.99, prix:5489}, {max:234.99, prix:5824},
+  {max:244.99, prix:6159}, {max:254.99, prix:6493}, {max:Infinity, prix:6830}
+];
+const TARIF_HORAIRE = 723;
+const HEURE_ATTENTE_HAUTE_MER = 360;
+let FORFAIT_CARBURANT_DEFAUT = 124;
+
+function b1Lookup(longueur){
+  if (!longueur || longueur<=0) return 0;
+  const tier = B1_TABLE.find(t=>longueur<=t.max);
+  return tier ? tier.prix : B1_TABLE[B1_TABLE.length-1].prix;
+}
+
+let currentMode = 'b1';
+let state = { lines: [], editingId: null, numero: null };
+let devisList = [];
+
+// ── PIN ──────────────────────────────────────────────────
+let pinValue = '';
+function pinPress(d){
+  if (!d || pinValue.length>=4) return;
+  pinValue += d;
+  updateDots();
+  if (pinValue.length===4){
+    setTimeout(()=>{
+      if (pinValue===PIN){
+        document.getElementById('pin-screen').classList.remove('active');
+        document.getElementById('main-screen').classList.add('active');
+        init();
+      } else {
+        document.getElementById('pin-error').textContent = 'Code incorrect';
+        pinValue=''; updateDots();
+      }
+    },150);
+  }
+}
+function pinDel(){ pinValue = pinValue.slice(0,-1); updateDots(); document.getElementById('pin-error').textContent=''; }
+function updateDots(){ for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<pinValue.length); }
+function logout(){ location.reload(); }
+
+// ── Init ─────────────────────────────────────────────────
+async function init(){
+  document.getElementById('info-date').value = new Date().toISOString().slice(0,10);
+  await loadConfig();
+  document.getElementById('b1-carburant').value = FORFAIT_CARBURANT_DEFAUT;
+  document.getElementById('h-carburant').value = FORFAIT_CARBURANT_DEFAUT;
+  document.getElementById('header-sub').textContent = `Forfait carburant courant : ${fmt(FORFAIT_CARBURANT_DEFAUT)}`;
+  renderLines();
+  await loadDevisList();
+}
+
+async function loadConfig(){
+  try{
+    const r = await fetch(`${SB}/rest/v1/remorquage_config?key=eq.forfait_carburant&select=value`, {headers:H});
+    const rows = await r.json();
+    if (rows && rows[0]) FORFAIT_CARBURANT_DEFAUT = parseFloat(rows[0].value) || 124;
+  }catch(e){ console.warn('config load failed', e); }
+}
+async function saveConfigCarburant(val){
+  try{
+    const r = await fetch(`${SB}/rest/v1/remorquage_config?key=eq.forfait_carburant`, {headers:H});
+    const rows = await r.json();
+    if (rows && rows[0]){
+      await fetch(`${SB}/rest/v1/remorquage_config?key=eq.forfait_carburant`, {method:'PATCH', headers:H, body:JSON.stringify({value:String(val)})});
+    } else {
+      await fetch(`${SB}/rest/v1/remorquage_config`, {method:'POST', headers:H, body:JSON.stringify({key:'forfait_carburant', value:String(val)})});
+    }
+    FORFAIT_CARBURANT_DEFAUT = val;
+    document.getElementById('header-sub').textContent = `Forfait carburant courant : ${fmt(val)}`;
+  }catch(e){ console.warn('config save failed', e); }
+}
+
+// ── Mode tabs ────────────────────────────────────────────
+function switchMode(mode){
+  currentMode = mode;
+  ['b1','horaire','hautemer'].forEach(m=>{
+    document.getElementById('tab-'+m).classList.toggle('active', m===mode);
+    document.getElementById('panel-'+m).style.display = (m===mode)?'block':'none';
+  });
+}
+
+function selectRadio(groupId, el, val){
+  const group = document.getElementById(groupId);
+  [...group.children].forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  group.dataset.value = val;
+  if (groupId==='b1-nb-remorqueurs' || groupId==='b1-sens') onB1Toggle();
+}
+function getRadioValue(groupId, fallback){
+  const group = document.getElementById(groupId);
+  return group.dataset.value || fallback;
+}
+function onB1Toggle(){
+  const convoi = document.getElementById('b1-convoi').checked;
+  document.getElementById('b1-longueur-hint').textContent = convoi
+    ? "Longueur totale du convoi = longueur(s) du/des remorqueur(s) navire + longueur(s) remorqué(s)."
+    : "Longueur du navire seul.";
+}
+
+// ── Lines management ────────────────────────────────────
+function renderLines(){
+  const tbody = document.getElementById('lines-body');
+  tbody.innerHTML = '';
+  state.lines.forEach((line, i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${escapeHtml(line.label)}" oninput="updateLine(${i},'label',this.value)"></td>
+      <td><input type="number" step="0.01" value="${line.montant}" oninput="updateLine(${i},'montant',this.value)"></td>
+      <td><button class="line-del" onclick="removeLine(${i})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  recalcTotal();
+}
+function updateLine(i, field, val){
+  state.lines[i][field] = field==='montant' ? (parseFloat(val)||0) : val;
+  recalcTotal();
+}
+function removeLine(i){ state.lines.splice(i,1); renderLines(); }
+function addLine(label, montant){ state.lines.push({label: label||'', montant: montant||0}); renderLines(); }
+function recalcTotal(){
+  const total = state.lines.reduce((s,l)=>s+(parseFloat(l.montant)||0),0);
+  document.getElementById('total-amount').textContent = fmt(total);
+  state.total = total;
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── Générateur MODE B1 ──────────────────────────────────
+function generateB1Lines(){
+  const longueur = parseFloat(document.getElementById('b1-longueur').value) || 0;
+  const nb = parseInt(getRadioValue('b1-nb-remorqueurs','1'));
+  const sens = getRadioValue('b1-sens','entree_sortie');
+  const convoi = document.getElementById('b1-convoi').checked;
+  const sansMachine = document.getElementById('b1-sans-machine').checked;
+  const dureeEntree = parseFloat(document.getElementById('b1-duree-entree').value) || 3;
+  const dureeSortie = parseFloat(document.getElementById('b1-duree-sortie').value) || 3;
+  const astreinte = parseFloat(document.getElementById('b1-astreinte').value) || 0;
+  const carburant = parseFloat(document.getElementById('b1-carburant').value) || FORFAIT_CARBURANT_DEFAUT;
+
+  const base = b1Lookup(longueur);
+  const mult = (convoi?1.5:1) * (sansMachine?2:1);
+  const baseMajoree = Math.round(base*mult*100)/100;
+  const coeffLabel = mult!==1 ? ` (×${mult.toString().replace('.',',')})` : '';
+
+  const lines = [];
+  const mouvements = [];
+  if (sens==='entree'||sens==='entree_sortie') mouvements.push('entree');
+  if (sens==='sortie'||sens==='entree_sortie') mouvements.push('sortie');
+
+  const nbStd = Math.min(nb,2);
+  for (let r=1; r<=nbStd; r++){
+    const nom = r===1?'1er remorqueur':'2ème remorqueur';
+    for (const mvt of mouvements){
+      const duree = mvt==='entree'?dureeEntree:dureeSortie;
+      const mvtLabel = mvt==='entree'?'Entrée':'Sortie';
+      lines.push({label:`${nom} — ${mvtLabel} — Tarif B1${coeffLabel}`, montant: baseMajoree});
+      if (r===1 && mvt==='entree' && astreinte>0){
+        lines.push({label:'Taxe astreinte (entrée)', montant: astreinte});
+      }
+      lines.push({label:`${nom} — ${mvtLabel} — Forfait carburant (3h)`, montant: carburant});
+      if (duree>3){
+        const montantSupp = Math.round(TARIF_HORAIRE*mult*100)/100;
+        lines.push({label:`${nom} — ${mvtLabel} — Heure supplémentaire${coeffLabel}`, montant: montantSupp});
+        lines.push({label:`${nom} — ${mvtLabel} — Forfait carburant supplémentaire`, montant: carburant});
+      }
+    }
+  }
+  if (nb>=3){
+    const montant3 = Math.round(0.5*baseMajoree*100)/100;
+    lines.push({label:'3ème remorqueur — forfait 50% tarif B1 (à vérifier)', montant: montant3});
+  }
+
+  state.lines = lines;
+  renderLines();
+  saveConfigCarburant(carburant);
+
+  // Pré-remplissage de l'objet
+  const navire = document.getElementById('info-navire').value || '{navire}';
+  const nbTxt = nb===1?'1 remorqueur':(nb+' remorqueurs');
+  const sensTxt = sens==='entree'?'une entrée':sens==='sortie'?'une sortie':'une entrée et une sortie';
+  const convoiTxt = convoi?'convoi ':'';
+  document.getElementById('info-objet').value =
+    `Remorquage (${nbTxt}) pour ${sensTxt} du ${convoiTxt}navire ${navire}, longueur ${convoi?'du convoi':'du navire'} : ${longueur} m.`;
+}
+
+// ── Générateur MODE HORAIRE ──────────────────────────────
+function generateHoraireLines(){
+  const heures = parseFloat(document.getElementById('h-heures').value) || 0;
+  const nb = parseInt(getRadioValue('h-nb-remorqueurs','1'));
+  const sansMachine = document.getElementById('h-sans-machine').checked;
+  const convoi = document.getElementById('h-convoi').checked;
+  const nuit = document.getElementById('h-nuit').checked;
+  const weekend = document.getElementById('h-weekend').checked;
+  const ferie = document.getElementById('h-ferie').checked;
+  const carburant = parseFloat(document.getElementById('h-carburant').value) || FORFAIT_CARBURANT_DEFAUT;
+
+  let mult = 1;
+  const coeffs = [];
+  if (sansMachine){ mult*=2; coeffs.push('sans machine ×2'); }
+  if (convoi){ mult*=1.5; coeffs.push('convoi ×1,5'); }
+  if (nuit){ mult*=1.25; coeffs.push('nuit ×1,25'); }
+  if (weekend){ mult*=1.5; coeffs.push('week-end ×1,50'); }
+  if (ferie){ mult*=1.5; coeffs.push('férié ×1,50'); }
+
+  const montantHoraire = Math.round(TARIF_HORAIRE*heures*mult*100)/100;
+  const tranches = Math.max(1, Math.ceil(heures/3));
+  const montantCarburant = Math.round(carburant*tranches*100)/100;
+
+  const lines = [];
+  for (let r=1; r<=nb; r++){
+    const nom = nb>1 ? `Remorqueur ${r} — ` : '';
+    lines.push({label:`${nom}Tarif horaire (${heures} h × ${TARIF_HORAIRE}€${coeffs.length?' × '+coeffs.join(' × '):''})`, montant: montantHoraire});
+    lines.push({label:`${nom}Forfait carburant (${tranches} tranche${tranches>1?'s':''} de 3h)`, montant: montantCarburant});
+  }
+  state.lines = lines;
+  renderLines();
+  saveConfigCarburant(carburant);
+
+  const navire = document.getElementById('info-navire').value || '{navire}';
+  const nbTxt = nb===1?'1 remorqueur':(nb+' remorqueurs');
+  document.getElementById('info-objet').value =
+    `Prestation de remorquage (${nbTxt}) au tarif horaire pour le navire ${navire}, durée estimée : ${heures} h${coeffs.length?' ('+coeffs.join(', ')+')':''}.`;
+}
+
+// ── Générateur MODE HAUTE MER ────────────────────────────
+function generateHauteMerLines(){
+  if (state.lines.length===0){
+    state.lines = [{label:'Prestation haute mer (à chiffrer manuellement)', montant:0}];
+    renderLines();
+  }
+  const navire = document.getElementById('info-navire').value || '{navire}';
+  if (!document.getElementById('info-objet').value){
+    document.getElementById('info-objet').value = `DESCRIPTION : ${navire}.`;
+  }
+}
+
+// ── PDF ──────────────────────────────────────────────────
+const RAPPEL_COMMANDE = `<p style="font-size:11.5px;color:#555;margin-top:16px">Rappel (conditions de commande) : majoration de 10% si le 1er remorqueur est commandé entre 17h et 8h30 ; majoration de 15% si le 2ème remorqueur est commandé avec moins de 12h de préavis ; majoration de 50% si la commande intervient après franchissement des passes ou largage des amarres.</p>`;
+
+function buildPdocConditions(){
+  if (currentMode!=='hautemer') return '';
+  const conditions = (document.getElementById('hm-conditions').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if (!conditions.length) return '';
+  return `<div class="pdoc-conditions-title">Conditions :</div><ul>${conditions.map(c=>`<li>${escapeHtml(c)}</li>`).join('')}</ul>`;
+}
+
+function buildPdocBody(){
+  const total = state.total || 0;
+  if (currentMode==='b1'){
+    const sens = getRadioValue('b1-sens','entree_sortie');
+    const sensTxt = sens==='entree'?'(entrée)':sens==='sortie'?'(sortie)':'(entrée et sortie)';
+    const mult = (document.getElementById('b1-convoi').checked?1.5:1) * (document.getElementById('b1-sans-machine').checked?2:1);
+    const coeffTxt = [];
+    if (document.getElementById('b1-convoi').checked) coeffTxt.push('Convoi coeff. 1,5');
+    if (document.getElementById('b1-sans-machine').checked) coeffTxt.push('Navire sans machine coeff. 2');
+    return `
+      <p>Sur une base forfaitaire de 3 heures de manœuvres maximum (par mouvement).</p>
+      <p class="tarif-line">Tarif : ${fmt(total)} HT ${sensTxt}</p>
+      <p>Toute heure supplémentaire sera facturée ${fmt(TARIF_HORAIRE*mult)} HT par remorqueur.</p>
+      ${coeffTxt.length?`<p class="coeff">Coefficients appliqués : ${coeffTxt.join(' — ')}</p>`:''}
+      ${RAPPEL_COMMANDE}
+    `;
+  }
+  if (currentMode==='horaire'){
+    let mult = 1;
+    if (document.getElementById('h-sans-machine').checked) mult*=2;
+    if (document.getElementById('h-convoi').checked) mult*=1.5;
+    if (document.getElementById('h-nuit').checked) mult*=1.25;
+    if (document.getElementById('h-weekend').checked) mult*=1.5;
+    if (document.getElementById('h-ferie').checked) mult*=1.5;
+    const carburant = parseFloat(document.getElementById('h-carburant').value) || FORFAIT_CARBURANT_DEFAUT;
+    return `
+      <p class="tarif-line">Tarif : ${fmt(total)} HT (forfait carburant inclus)</p>
+      <p>Toute heure supplémentaire sera facturée ${fmt(TARIF_HORAIRE*mult)} / heure HT / remorqueur.</p>
+      <p>Le forfait carburant est valable pour 3h, si le mouvement dure plus de 3h, un forfait carburant d'un montant de ${fmt(carburant)} sera facturé par remorqueur.</p>
+      ${RAPPEL_COMMANDE}
+    `;
+  }
+  // haute mer
+  return `
+    <p class="tarif-line">Offre de Prix : ${fmt(total)} HT</p>
+    <p>Toute heure supplémentaire sera facturée ${fmt(TARIF_HORAIRE)} HT / heure.</p>
+    <p>Toute heure d'attente sera de ${fmt(HEURE_ATTENTE_HAUTE_MER)} HT / heure.</p>
+  `;
+}
+
+const CGV_HTML = `
+  <div class="pdoc-cgv">
+    <h2>CONDITIONS GENERALES DE VENTE</h2>
+    <p class="cgv-intro">Les dispositions qui suivent établissent les conditions générales de vente des produits prestations proposées par la SAS PCLBS PORT DE COMMERCE DE LORIENT BRETAGNE SUD dans le cadre de la Concession Portuaire</p>
+    <h3>ARTICLE 1 – OBJET DU CONTRAT</h3>
+    <p>Les présentes conditions générales de vente régissent les relations contractuelles entre la SAS PCLBS et son client, dans le cadre de la Concession Portuaire, les deux parties acceptant celles-ci sans réserve. Ces conditions générales de vente prévaudront sur toutes autres conditions, sauf dérogation préalable, expresse et écrite.</p>
+    <h3>ARTICLE 2 – PRIX</h3>
+    <p>Les prestations portuaires et leurs tarifs en vigueur sont détaillés dans les tarifs d'outillage qui sont d'ordre public (tarifs approuvés par le Conseil Portuaire, le Conseil Régional, l'Assemblée Générale de la SAS PCLBS). Ces tarifs font l'objet d'une publication au Journal Officiel lors de leur modification.</p>
+    <h3>ARTICLE 3 – ACCEPTATION DES CONDITIONS GENERALES DE VENTE</h3>
+    <p>Toute commande implique l'acceptation de nos conditions générales de vente et de règlement sauf dérogation formelle et expresse de notre part pour une opération terminée.</p>
+    <h3>ARTICLE 4 – PAIEMENT</h3>
+    <p>Le paiement est dû dans un délai de 30 jours date de facture. Aucun escompte n'est accordé en cas de paiement anticipé.</p>
+    <p>En cas de retard de paiement, les sommes suivantes seront exigibles :</p>
+    <ul>
+      <li>L'Indemnité forfaitaire de 40 euros (prévue par la loi du 22/03/2012)</li>
+      <li>Des intérêts dus au titre de la clause pénale calculés sur la base de 15% des sommes facturées</li>
+      <li>Des intérêts de retard calculés par application du taux de la Banque Centrale Européenne.</li>
+    </ul>
+    <p>Le règlement des prestations peut s'effectuer :</p>
+    <ul>
+      <li>Par virement bancaire (références à notre compte sur les factures clients)</li>
+      <li>Par chèque bancaire ou postal à l'ordre de la SAS PCLBS, 3BD de la Rade- 56100 LORIENT CEDEX</li>
+    </ul>
+    <p>Les prestations d'un montant inférieur à 150 euros TTC sont payables au comptant.</p>
+    <p>En cas de non-paiement ou de compte débiteur, la SAS PCLBS se réserve le droit de refuser d'exécuter la prestation.</p>
+    <h3>ARTICLE 5 – RENONCIATION ET TOLERANCE</h3>
+    <p>Il est formellement convenu entre la SAS PCLBS et le client que toute tolérance ou renonciation de l'une des parties dans l'application de tout ou partie des engagements prévus aux présentes conditions générales, quels qu'en aient pu être la fréquence et la durée, ne saurait valoir modification des présentes, ni générer un droit quelconque.</p>
+    <p>Plus précisément, aucun retard ni aucune inaction, abstention ou omission de la part du Vendeur dans l'exercice de l'un quelconque de ses droits au terme du présent accord ne portera atteinte aux dits droits, ni ne sera considéré comme impliquant de sa part une renonciation à se prévaloir de ses droits.</p>
+    <h3>ARTICLE 6 – IMPOSSIBILITE D'EXECUTION ET FORCE MAJEURE</h3>
+    <p>La SAS PCLBS se réserve le droit de résoudre la vente totalement ou partiellement en cas de force majeure ou d'évènements susceptibles d'empêcher la fourniture des prestations et ne saurait être tenue pour responsable de l'inexécution du contrat conclu pour ces mêmes motifs.</p>
+    <h3>ARTICLE 7 – DROIT APPLICABLE ET LITIGES</h3>
+    <p>Les présentes conditions générales ainsi que les actes qui en seront les conséquences sont soumises au droit français, et tout litige découlant de leur exécution ou de leur interprétation sera de la compétence exclusive des Tribunaux compétents du ressort de la SAS PCLBS, même en cas de pluralité de défenseurs, de défendeurs et d'appels en garantie. Condition formelle et absolue sans laquelle nos ventes n'auraient pas lieu et nos prestations ne seraient pas exécutées.</p>
+  </div>`;
+
+function generatePDF(){
+  if (state.lines.length===0){ alert('Génère au moins une ligne de calcul avant de créer le PDF.'); return; }
+  const date = document.getElementById('info-date').value;
+  const capitaine = document.getElementById('info-capitaine').value || 'Antoine JOSSE';
+  const destinataire = document.getElementById('info-destinataire').value;
+  const clientSociete = document.getElementById('info-client-societe').value;
+  const clientContact = document.getElementById('info-client-contact').value;
+  const objet = document.getElementById('info-objet').value;
+
+  const html = `
+    <div class="pdoc">
+      <div class="pdoc-head">
+        <img src="logo-remorquage.png" class="pdoc-logo" alt="SAS Port Commerce Lorient">
+        3 BD DE LA RADE - 56 100 LORIENT<br>
+        T. +33 (0)2 97 87 76 00 - http://lorient.port.fr/<br>
+        N° SIRET : 879 741 668 00013<br>
+        N° T.V.A. : FR 31879741668<br><br>
+        REMORQUAGE<br>
+        capitaines.remorquage@lorient.port.remorquage<br>
+        TEL : 06.14.90.28.65
+      </div>
+      <div class="pdoc-date">Lorient, le ${fmtDate(date)}</div>
+      <div class="pdoc-row">
+        <div>
+          <div class="pdoc-cap">Offre de prix venant du capitaine ${escapeHtml(capitaine)}</div>
+          ${destinataire?`<div style="margin-top:10px"><b>Destinataire :</b> ${escapeHtml(destinataire)}</div>`:''}
+        </div>
+        ${(clientSociete||clientContact)?`<div class="pdoc-client"><b>Client :</b> ${escapeHtml(clientSociete)}<br>${escapeHtml(clientContact)}</div>`:''}
+      </div>
+      ${buildPdocConditions()}
+      <div class="pdoc-obj-title">OBJET DE LA PRESTATION :</div>
+      <p>${escapeHtml(objet).replace(/\n/g,'<br>')}</p>
+      ${buildPdocBody()}
+      <p>Si vous pouvez bénéficier de l'exonération de TVA au sens de l'article 262 II du CGI, merci de joindre à ce devis signé l'attestation Navire. Durée de validité de l'offre : un mois.</p>
+      <div class="pdoc-sign">
+        Cordialement<br>
+        ${/josse/i.test(capitaine) ? '<img src="signature-josse.png" class="pdoc-sign-img" alt="Signature">' : '<br><br>'}
+        ${escapeHtml(capitaine)}<br>
+        Capitaine de service<br>
+        SAS Port de commerce de Lorient Bretagne Sud
+      </div>
+    </div>
+    ${CGV_HTML}`;
+  document.getElementById('print-root').innerHTML = html;
+  setTimeout(()=>window.print(), 50);
+}
+
+// ── Supabase : save / load ───────────────────────────────
+async function nextNumero(){
+  const year = new Date().getFullYear();
+  try{
+    const r = await fetch(`${SB}/rest/v1/devis_remorquage?select=numero&numero=like.REM-${year}-*&order=numero.desc&limit=1`, {headers:H});
+    const rows = await r.json();
+    if (rows && rows[0] && rows[0].numero){
+      const n = parseInt(rows[0].numero.split('-').pop())+1;
+      return `REM-${year}-${String(n).padStart(3,'0')}`;
+    }
+  }catch(e){ console.warn(e); }
+  return `REM-${year}-001`;
+}
+
+async function saveDevis(){
+  if (state.lines.length===0){ alert("Génère au moins une ligne de calcul avant d'enregistrer."); return; }
+  const payload = {
+    date_devis: document.getElementById('info-date').value,
+    capitaine: document.getElementById('info-capitaine').value,
+    destinataire: document.getElementById('info-destinataire').value,
+    client_societe: document.getElementById('info-client-societe').value,
+    client_contact: document.getElementById('info-client-contact').value,
+    navire: document.getElementById('info-navire').value,
+    mode: currentMode,
+    objet: document.getElementById('info-objet').value,
+    detail: state.lines,
+    total_ht: state.total || 0,
+    statut: document.getElementById('info-statut').value
+  };
+  try{
+    let r;
+    if (state.editingId){
+      r = await fetch(`${SB}/rest/v1/devis_remorquage?id=eq.${state.editingId}`, {method:'PATCH', headers:{...H,'Prefer':'return=representation'}, body:JSON.stringify(payload)});
+    } else {
+      payload.numero = await nextNumero();
+      r = await fetch(`${SB}/rest/v1/devis_remorquage`, {method:'POST', headers:{...H,'Prefer':'return=representation'}, body:JSON.stringify(payload)});
+    }
+    if (!r.ok) throw new Error(await r.text());
+    const rows = await r.json();
+    if (rows && rows[0]){ state.editingId = rows[0].id; state.numero = rows[0].numero; }
+    const msg = document.getElementById('save-success');
+    msg.textContent = `✅ Devis ${state.numero||''} enregistré`;
+    msg.style.display='block'; msg.style.background='#e3f7ec'; msg.style.color='#1D9E75';
+    setTimeout(()=>msg.style.display='none', 3000);
+    await loadDevisList();
+  }catch(e){
+    console.error(e);
+    const msg = document.getElementById('save-success');
+    msg.textContent = "❌ Erreur d'enregistrement — vérifie que la table devis_remorquage existe";
+    msg.style.display='block'; msg.style.background='#fdecea'; msg.style.color='#E74C3C';
+  }
+}
+
+async function loadDevisList(){
+  try{
+    const r = await fetch(`${SB}/rest/v1/devis_remorquage?select=*&order=created_at.desc&limit=25`, {headers:H});
+    const data = await r.json();
+    devisList = Array.isArray(data) ? data : [];
+    renderDevisList();
+  }catch(e){ console.warn('historique indisponible', e); }
+}
+function renderDevisList(){
+  const el = document.getElementById('devis-list');
+  if (!devisList || devisList.length===0){ el.innerHTML = '<div class="hint">Aucun devis enregistré pour le moment.</div>'; return; }
+  el.innerHTML = devisList.map((d,i)=>`
+    <div class="devis-item" onclick="loadDevis(${i})">
+      <div class="devis-item-top">
+        <span class="devis-item-title">${d.numero||'—'} · ${escapeHtml(d.navire||'')}</span>
+        <span class="devis-item-amount">${fmt(d.total_ht)}</span>
+      </div>
+      <div class="devis-item-sub">${fmtDate(d.date_devis)} — ${escapeHtml(d.client_societe||d.destinataire||'')} <span class="badge badge-${d.statut}">${d.statut}</span></div>
+    </div>`).join('');
+}
+function loadDevis(i){
+  const d = devisList[i];
+  state.editingId = d.id;
+  state.numero = d.numero;
+  state.lines = d.detail || [];
+  document.getElementById('info-date').value = d.date_devis||'';
+  document.getElementById('info-capitaine').value = d.capitaine||'Antoine JOSSE';
+  document.getElementById('info-destinataire').value = d.destinataire||'';
+  document.getElementById('info-client-societe').value = d.client_societe||'';
+  document.getElementById('info-client-contact').value = d.client_contact||'';
+  document.getElementById('info-navire').value = d.navire||'';
+  document.getElementById('info-objet').value = d.objet||'';
+  document.getElementById('info-statut').value = d.statut||'brouillon';
+  if (d.mode) switchMode(d.mode);
+  renderLines();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
