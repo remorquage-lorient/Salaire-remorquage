@@ -448,14 +448,37 @@ function updateDots(){ for(let i=0;i<4;i++) document.getElementById('d'+i).class
 function logout(){ location.reload(); }
 
 // ── Init ─────────────────────────────────────────────────
+let FORFAIT_CARBURANT_MAJ = null; // date ISO (YYYY-MM-DD) de la dernière mise à jour du forfait
+
 async function init(){
   document.getElementById('info-date').value = new Date().toISOString().slice(0,10);
   await loadConfig();
   document.getElementById('b1-carburant').value = FORFAIT_CARBURANT_DEFAUT;
   document.getElementById('h-carburant').value = FORFAIT_CARBURANT_DEFAUT;
-  document.getElementById('header-sub').textContent = `Forfait carburant courant : ${fmt(FORFAIT_CARBURANT_DEFAUT)}`;
+  updateHeaderSub();
   renderLines();
   await loadDevisList();
+}
+
+function updateHeaderSub(){
+  let txt = `Forfait carburant courant : ${fmt(FORFAIT_CARBURANT_DEFAUT)}`;
+  const now = new Date();
+  if (FORFAIT_CARBURANT_MAJ){
+    txt += ` (màj le ${fmtDate(FORFAIT_CARBURANT_MAJ)})`;
+    const maj = new Date(FORFAIT_CARBURANT_MAJ);
+    const pasMisAJourCeMois = maj.getFullYear() < now.getFullYear() ||
+      (maj.getFullYear()===now.getFullYear() && maj.getMonth() < now.getMonth());
+    if (pasMisAJourCeMois){
+      txt += ' ⚠️ à vérifier (pas mis à jour ce mois-ci)';
+      document.getElementById('header-sub').style.color = '#FFD166';
+    } else {
+      document.getElementById('header-sub').style.color = '';
+    }
+  } else {
+    txt += ' (date de màj inconnue) ⚠️ à vérifier';
+    document.getElementById('header-sub').style.color = '#FFD166';
+  }
+  document.getElementById('header-sub').textContent = txt;
 }
 
 async function loadConfig(){
@@ -463,19 +486,29 @@ async function loadConfig(){
     const r = await fetch(`${SB}/rest/v1/remorquage_config?key=eq.forfait_carburant&select=value`, {headers:H});
     const rows = await r.json();
     if (rows && rows[0]) FORFAIT_CARBURANT_DEFAUT = parseFloat(rows[0].value) || 124;
+    const r2 = await fetch(`${SB}/rest/v1/remorquage_config?key=eq.forfait_carburant_maj&select=value`, {headers:H});
+    const rows2 = await r2.json();
+    if (rows2 && rows2[0]) FORFAIT_CARBURANT_MAJ = rows2[0].value;
   }catch(e){ console.warn('config load failed', e); }
 }
+async function upsertConfig(key, value){
+  const r = await fetch(`${SB}/rest/v1/remorquage_config?key=eq.${key}`, {headers:H});
+  const rows = await r.json();
+  if (rows && rows[0]){
+    await fetch(`${SB}/rest/v1/remorquage_config?key=eq.${key}`, {method:'PATCH', headers:H, body:JSON.stringify({value:String(value)})});
+  } else {
+    await fetch(`${SB}/rest/v1/remorquage_config`, {method:'POST', headers:H, body:JSON.stringify({key, value:String(value)})});
+  }
+}
 async function saveConfigCarburant(val){
+  if (val === FORFAIT_CARBURANT_DEFAUT) return; // valeur inchangée : pas de mise à jour de la date
   try{
-    const r = await fetch(`${SB}/rest/v1/remorquage_config?key=eq.forfait_carburant`, {headers:H});
-    const rows = await r.json();
-    if (rows && rows[0]){
-      await fetch(`${SB}/rest/v1/remorquage_config?key=eq.forfait_carburant`, {method:'PATCH', headers:H, body:JSON.stringify({value:String(val)})});
-    } else {
-      await fetch(`${SB}/rest/v1/remorquage_config`, {method:'POST', headers:H, body:JSON.stringify({key:'forfait_carburant', value:String(val)})});
-    }
+    const today = new Date().toISOString().slice(0,10);
+    await upsertConfig('forfait_carburant', val);
+    await upsertConfig('forfait_carburant_maj', today);
     FORFAIT_CARBURANT_DEFAUT = val;
-    document.getElementById('header-sub').textContent = `Forfait carburant courant : ${fmt(val)}`;
+    FORFAIT_CARBURANT_MAJ = today;
+    updateHeaderSub();
   }catch(e){ console.warn('config save failed', e); }
 }
 
